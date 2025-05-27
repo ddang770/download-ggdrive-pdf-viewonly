@@ -14,6 +14,7 @@ cd download-ggdrive-pdf-viewonly
 
 Now, install the node packages
 *NOTE: you need to have NodeJS installed to do this
+This program currently using Node 24.0
 
 ```bash
 npm install
