@@ -51,7 +51,7 @@ async function autoScroll(page, scrollTimes, delay) {
 async function run() {
   await fs.ensureDir(OUTPUT_DIR);
 
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
   const imageRequests = [];
@@ -71,6 +71,7 @@ async function run() {
   });
 
   // Go to your specific view-only Google Drive PDF
+  // Replace your URL here
   await page.goto("https://drive.google.com/file/d/1hNc_XKVN60IJWp4askQ1WbnxudVFl8zF/view", {
     waitUntil: "networkidle2",
   });
@@ -95,6 +96,7 @@ async function run() {
   }
 
   // Combine into PDF
+  console.log('Combining into PDF ...')
   const pdfDoc = await PDFDocument.create();
   for (const imgPath of downloadedImages) {
     const imgBytes = await fs.readFile(imgPath);
