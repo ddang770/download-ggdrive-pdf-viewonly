@@ -12,8 +12,8 @@ After download, go into the folder
 cd download-ggdrive-pdf-viewonly
 ```
 
-Now, install the node packages\n
-\*NOTE: you need to have NodeJS installed to do this
+Now, install the node packages
+*NOTE: you need to have NodeJS installed to do this
 
 ```bash
 npm install
