@@ -92,27 +92,19 @@ async function autoScroll(page, scrollTimes, delay) {
 
 
 async function processPdfJob(jobId, driveUrl) {
-  let browser = null;
   try {
     jobs[jobId].status = 'processing';
     logger.info('PDF processing started', { jobId, driveUrl });
     
-    browser = await puppeteer.launch({
+    const browser = await puppeteer.launch({
+      headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
+        '--single-process'
       ],
-      executablePath: process.env.NODE_ENV === 'production' 
-        ? await chrome.executablePath
-        : '/usr/bin/google-chrome',
-      headless: 'new',
-      ignoreHTTPSErrors: true
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH // will be auto-resolved
     });
     
     const page = await browser.newPage();

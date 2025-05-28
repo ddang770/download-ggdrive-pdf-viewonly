@@ -2,7 +2,7 @@ services:
   - type: web
     name: drive-pdf-converter
     env: node
-    buildCommand: npm install && npm run postinstall
+    buildCommand: npm install
     startCommand: node server.js
     envVars:
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
