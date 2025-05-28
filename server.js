@@ -9,6 +9,7 @@ const { PDFDocument } = require('pdf-lib');
 const axios = require('axios');
 const puppeteer = require('puppeteer');
 const logger = require('./logger');
+const chrome = require('chrome-aws-lambda');
 
 const app = express();
 app.use(bodyParser.json());
@@ -92,19 +93,23 @@ async function autoScroll(page, scrollTimes, delay) {
 
 
 async function processPdfJob(jobId, driveUrl) {
+  let browser;
   try {
     jobs[jobId].status = 'processing';
-    logger.info('PDF processing started', { jobId, driveUrl });
+    logger.info('Starting PDF processing', { jobId });
     
-    const browser = await puppeteer.launch({
-      headless: 'new',
+    // Proper browser launch configuration
+    browser = await puppeteer.launch({
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--single-process'
       ],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH // will be auto-resolved
+      executablePath: process.env.NODE_ENV === 'production'
+        ? await chrome.executablePath
+        : puppeteer.executablePath(),
+      headless: 'new'
     });
     
     const page = await browser.newPage();
@@ -184,14 +189,9 @@ async function processPdfJob(jobId, driveUrl) {
     await browser.close();
     
   } catch (error) {
+    logger.error('PDF processing failed', { jobId, error: error.message });
     jobs[jobId].status = 'failed';
     jobs[jobId].error = error.message;
-
-    logger.error('PDF processing failed', { 
-      jobId,
-      error: error.message,
-      stack: error.stack 
-    });
     console.error('Processing error:', error);
   } finally {
     if (browser) await browser.close();

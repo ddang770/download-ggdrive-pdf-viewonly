@@ -5,8 +5,6 @@ services:
     buildCommand: npm install
     startCommand: node server.js
     envVars:
-      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
-        value: true
       - key: NODE_ENV
         value: production
       - key: PORT
