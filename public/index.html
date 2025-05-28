@@ -1,0 +1,73 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Drive PDF Converter</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    #result { margin-top: 20px; padding: 15px; border-radius: 5px; }
+    .processing { background: #fff3cd; }
+    .completed { background: #d4edda; }
+    .failed { background: #f8d7da; }
+  </style>
+</head>
+<body>
+  <h1>Google Drive PDF Converter</h1>
+  <form id="convertForm">
+    <div>
+      <label for="driveUrl">Google Drive PDF URL:</label>
+      <input type="text" id="driveUrl" required style="width: 100%; padding: 8px;">
+    </div>
+    <button type="submit" style="margin-top: 10px; padding: 8px 15px;">Convert to PDF</button>
+  </form>
+  
+  <div id="result" style="display: none;"></div>
+  
+  <script>
+    document.getElementById('convertForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const driveUrl = document.getElementById('driveUrl').value;
+      const resultDiv = document.getElementById('result');
+      
+      resultDiv.style.display = 'block';
+      resultDiv.className = '';
+      resultDiv.innerHTML = 'Starting conversion...';
+      
+      try {
+        // Start conversion
+        const response = await fetch('/api/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ driveUrl })
+        });
+        
+        const { jobId } = await response.json();
+        resultDiv.innerHTML = 'Processing your PDF...';
+        resultDiv.classList.add('processing');
+        
+        // Check job status periodically
+        const checkStatus = async () => {
+          const res = await fetch(`/api/job/${jobId}`);
+          const job = await res.json();
+          
+          if (job.status === 'completed') {
+            resultDiv.innerHTML = 'Conversion complete! <a href="' + job.result + '">Download PDF</a>';
+            resultDiv.classList.add('completed');
+          } else if (job.status === 'failed') {
+            resultDiv.innerHTML = 'Error: ' + (job.error || 'Conversion failed');
+            resultDiv.classList.add('failed');
+          } else {
+            resultDiv.innerHTML = 'Processing your PDF... (status: ' + job.status + ')';
+            setTimeout(checkStatus, 2000);
+          }
+        };
+        
+        checkStatus();
+      } catch (error) {
+        resultDiv.innerHTML = 'Error: ' + error.message;
+        resultDiv.classList.add('failed');
+      }
+    });
+  </script>
+</body>
+</html>
