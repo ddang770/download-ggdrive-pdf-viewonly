@@ -18,7 +18,47 @@ const PORT = process.env.PORT || 3000;
 // Queue system
 const jobs = {};
 
-// Your existing functions (countTotalPages, autoScroll) go here...
+// Count the amount of pages
+async function countTotalPages(page) {
+  try {
+    // Wait for the page counter element to load
+    await page.waitForSelector('.ndfHFb-c4YZDc-DARUcf-NnAfwf-j4LONd', { timeout: 10000 });
+    
+    const totalPages = await page.evaluate(() => {
+      const pageCounter = document.querySelector('.ndfHFb-c4YZDc-DARUcf-NnAfwf-j4LONd');
+      if (pageCounter) {
+        // The text is typically in format "1 of 25" where 25 is total pages
+        const text = pageCounter.textContent.trim();
+        const match = text.match(/(\d+)\s*of\s*(\d+)/i);
+        
+        if (match && match[2]) {
+          return parseInt(match[2], 10);
+        }
+        
+        // Alternative check if the format is different
+        const numberMatch = text.match(/\d+/);
+        if (numberMatch) {
+          return parseInt(numberMatch[0], 10);
+        }
+      }
+      return 0;
+    });
+    
+    return totalPages;
+  } catch (error) {
+    console.error('Error counting pages:', error);
+    return 0;
+  }
+}
+
+
+async function autoScroll(page, scrollTimes, delay) {
+  for (let i = 0; i < scrollTimes; i++) {
+    await page.keyboard.press('PageDown');
+    await page.waitForTimeout ? await page.waitForTimeout(delay) : await new Promise(res => setTimeout(res, delay));
+  }
+}
+
 
 async function processPdfJob(jobId, driveUrl) {
   try {
